@@ -3,10 +3,10 @@ import { ref, computed } from 'vue'
 import API from '/src/model/api'
 
 const settings = ref({
-  audio_providers: [''],
-  lyrics_providers: [''],
-  format: '',
-  output: '',
+  audio_providers: ['youtube-music'],
+  lyrics_providers: ['genius'],
+  format: 'mp3',
+  output: '{artists} - {title}.{output-ext}',
 })
 
 const settingsOptions = {
@@ -19,7 +19,14 @@ const settingsOptions = {
 API.getSettings().then((res) => {
   if (res.status === 200) {
     console.log('Received settings:', res.data)
-    settings.value = res.data
+    // Merge settings, keeping defaults if backend sends empty strings
+    settings.value = {
+      ...settings.value,
+      ...res.data,
+      format: res.data.format || 'mp3',
+      audio_providers: res.data.audio_providers?.length ? res.data.audio_providers : ['youtube-music'],
+      lyrics_providers: res.data.lyrics_providers?.length ? res.data.lyrics_providers : ['genius']
+    }
   } else {
     console.log('Error loading settings')
   }

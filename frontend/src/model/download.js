@@ -32,8 +32,7 @@ class DownloadItem {
     this.web_download_url = URL
   }
   isQueued() {
-    return this.song.song_id !== undefined ? true : false
-    // return this.web_status === STATUS.QUEUED
+    return this.web_status === STATUS.QUEUED
   }
   isDownloading() {
     return this.web_status === STATUS.DOWNLOADING
@@ -51,6 +50,8 @@ class DownloadItem {
 }
 
 export function useProgressTracker() {
+  const sessionSongIds = new Set()
+
   function _findIndex(song) {
     return downloadQueue.value.findIndex(
       (downloadItem) => downloadItem.song.song_id === song.song_id
@@ -59,6 +60,7 @@ export function useProgressTracker() {
   function appendSong(song) {
     let downloadItem = new DownloadItem(song)
     downloadQueue.value.push(downloadItem)
+    sessionSongIds.add(song.song_id)
   }
   function removeSong(song) {
     console.log('removing', song, song.song_id)
@@ -74,10 +76,15 @@ export function useProgressTracker() {
     return downloadQueue.value[_findIndex(song)]
   }
 
+  function isSessionSong(song) {
+    return sessionSongIds.has(song.song_id)
+  }
+
   return {
     appendSong,
     removeSong,
     getBySong,
+    isSessionSong,
     downloadQueue,
   }
 }
@@ -107,11 +114,11 @@ export function useDownloadManager() {
           if (Array.isArray(songs)) {
             for (const song of songs) {
               console.log('Opened Song:', song)
-              queue(song)
+              queue(song, false)
             }
           } else {
             console.log('Opened Song:', songs)
-            queue(songs)
+            queue(songs, false)
           }
         } else {
           console.log('Error:', res)
@@ -149,7 +156,7 @@ export function useDownloadManager() {
       })
   }
 
-  function queue(song, beginDownload = true) {
+  function queue(song, beginDownload = false) {
     progressTracker.appendSong(song)
     if (beginDownload) download(song)
   }

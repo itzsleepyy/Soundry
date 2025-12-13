@@ -1,6 +1,6 @@
 <template>
   <!-- :data-theme="theme ? 'forest' : 'emerald'" -->
-  <div class="bg-base-300 absolute w-full top-0">
+  <div class="min-h-screen bg-gradient-to-br from-base-100 via-neutral/50 to-base-300 relative w-full overflow-x-hidden">
     <router-view></router-view>
     <Footer />
     <Settings />
@@ -15,8 +15,8 @@ import { useBinaryThemeManager } from './model/theme'
 
 const themeMgr = useBinaryThemeManager()
 onBeforeMount(() => {
-  themeMgr.setLightAlias('emerald')
-  themeMgr.setDarkAlias('forest')
+  themeMgr.setLightAlias('soundry-light')
+  themeMgr.setDarkAlias('soundry-dark')
 })
 </script>
 

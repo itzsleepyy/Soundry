@@ -1,30 +1,39 @@
 <template>
-  <div class="flex flex-row items-center space-x-4 w-full">
-    <input
-      type="text"
-      :placeholder="placeHolder"
-      class="input input-bordered w-full text-base-content"
-      v-model="sm.searchTerm.value"
-      @keyup.enter="lookUp(sm.searchTerm.value)"
-    />
-    <button
-      v-if="dm.loading.value"
-      class="btn btn-square btn-primary loading"
-    ></button>
-    <button
-      v-else
-      class="btn btn-square btn-primary"
-      @click="lookUp(sm.searchTerm.value)"
-    >
-      <!-- zero-width space - this btn class style breaks with only a svg inside -->
-
-      <Icon
-        v-if="sm.isValidURL(sm.searchTerm.value)"
-        icon="clarity:download-line"
-        class="h-6 w-6"
+  <div class="flex flex-row items-center w-full max-w-4xl mx-auto">
+    <div class="join w-full shadow-lg">
+       <!-- Format Selector -->
+       <select v-model="sm.settings.value.format" class="select select-bordered join-item bg-base-100 focus:outline-none w-24">
+          <option v-for="fmt in sm.settingsOptions.format" :key="fmt" :value="fmt">{{ fmt.toUpperCase() }}</option>
+       </select>
+       
+       <!-- Input -->
+      <input
+        type="text"
+        :placeholder="placeHolder"
+        class="input input-bordered join-item w-full text-base-content bg-base-100 focus:outline-none text-lg px-6"
+        v-model="searchManager.searchTerm.value"
+        @keyup.enter="lookUp(searchManager.searchTerm.value)"
       />
-      <Icon v-else icon="clarity:search-line" class="h-6 w-6" />
-    </button>
+      
+      <!-- Action Button -->
+      <button
+        v-if="dm.loading.value"
+        class="btn btn-square btn-primary join-item loading"
+      ></button>
+      <button
+        v-else
+        class="btn btn-square btn-primary join-item px-6 w-auto"
+        @click="lookUp(searchManager.searchTerm.value)"
+      >
+        <span v-if="searchManager.isValidURL(searchManager.searchTerm.value)" class="font-bold mr-2">Download</span>
+        <Icon
+          v-if="searchManager.isValidURL(searchManager.searchTerm.value)"
+          icon="clarity:download-line"
+          class="h-6 w-6"
+        />
+        <Icon v-else icon="clarity:search-line" class="h-6 w-6" />
+      </button>
+    </div>
   </div>
 </template>
 
@@ -35,9 +44,11 @@ import router from '../router'
 
 import { useSearchManager } from '../model/search'
 import { useDownloadManager } from '../model/download'
+import { useSettingsManager } from '../model/settings'
 
-const sm = useSearchManager()
+const searchManager = useSearchManager()
 const dm = useDownloadManager()
+const sm = useSettingsManager()
 
 const placeHolderOptions = [
   'Crossfire - Stephen',
@@ -61,12 +72,12 @@ onBeforeUnmount(() => {
 })
 
 function lookUp(query) {
-  if (sm.isValidURL(query)) {
+  if (searchManager.isValidURL(query)) {
     dm.fromURL(query)
     router.push({ name: 'Download' })
-  } else if (sm.isValidSearch(query)) {
+  } else if (searchManager.isValidSearch(query)) {
     let dest = { name: 'Search', params: { query: query } }
-    if (sm.isValidSearch(query)) router.push(dest)
+    if (searchManager.isValidSearch(query)) router.push(dest)
   } else {
     console.log('Invalid search term.')
   }

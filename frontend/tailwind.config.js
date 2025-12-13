@@ -7,38 +7,37 @@ module.exports = {
       'dark',
       'forest',
       {
-        'downtify-dark': {
-          // ...require('daisyui/src/colors/themes')['[data-theme=forest]'],
-          primary: '#1AD05C', // downtify green
-          'primary-content': '#ffffff', // font color on primary
-          secondary: '#ffffff', // unused?
-          accent: '#ffffff', // unused
-          neutral: '#4c4c4c', // navbar & footer
-          'base-100': '#131518', // input & content bg
-          'base-200': '#131518', // border & special content bg
-          'base-300': '#212529', // background
+        'soundry-dark': {
+          primary: '#ff5500', // Soundry Orange
+          'primary-content': '#ffffff',
+          secondary: '#111111', // Deep Black
+          accent: '#ffffff',
+          neutral: '#1f1f1f', // Surface
+          'base-100': '#000000', // Background
+          'base-200': '#111111', // Cards
+          'base-300': '#1f1f1f', // Borders/Elevated
           info: '#3ABFF8',
           success: '#1AD05C',
           warning: '#FBBD23',
           error: '#F87272',
-          '--rounded-btn': '1.9rem',
+          '--rounded-btn': '0.5rem',
         },
       },
       {
-        'downtify-light': {
-          primary: '#1AD05C',
+        'soundry-light': {
+          primary: '#ff5500', // Soundry Orange
           'primary-content': '#ffffff',
-          secondary: '#5d5d5d',
-          accent: '#16ce57',
-          neutral: '#4c4c4c',
+          secondary: '#f5f5f5',
+          accent: '#111111',
+          neutral: '#e5e5e5',
           'base-100': '#ffffff',
-          'base-200': '#ffffff',
-          'base-300': '#ffffff',
+          'base-200': '#f5f5f5',
+          'base-300': '#e5e5e5',
           info: '#3ABFF8',
           success: '#1AD05C',
           warning: '#FBBD23',
           error: '#F87272',
-          '--rounded-btn': '1.9rem',
+          '--rounded-btn': '0.5rem',
         },
       },
     ],

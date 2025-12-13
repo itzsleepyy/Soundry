@@ -1,17 +1,14 @@
 <template>
   <div
-    class="navbar m-2 shadow-lg bg-neutral text-neutral-content rounded-box"
+    class="navbar m-2 shadow-lg bg-neutral/80 backdrop-blur-md text-neutral-content rounded-box border border-white/5"
     style="width: auto !important"
   >
-    <button
-      class="px-2 mx-2 navbar-start"
+    <div
+      class="px-2 mx-2 navbar-start cursor-pointer transition-opacity hover:opacity-80"
       @click="router.push({ name: 'Home' })"
     >
-      <div class="bg-cover bg-no-repeat bg-center">
-        <img src="../assets/downtify.svg" class="py-2 pr-2 w-10 center" />
-      </div>
-      <button class="text-lg font-bold">Downtify</button>
-    </button>
+      <SoundryLogo />
+    </div>
     <div class="hidden sm:flex px-2 mx-2 navbar-center w-96 space-x-4">
       <SearchInput class="w-full" />
     </div>
@@ -90,6 +87,7 @@ import { useSearchManager } from '../model/search'
 
 import { Icon } from '@iconify/vue'
 import SearchInput from '../components/SearchInput.vue'
+import SoundryLogo from '../components/SoundryLogo.vue'
 
 const pt = useProgressTracker()
 const dm = useDownloadManager()
@@ -97,8 +95,8 @@ const sm = useSearchManager()
 const route = useRoute()
 
 const themeMgr = useBinaryThemeManager({
-  newLightAlias: 'downtify-light',
-  newDarkAlias: 'downtify-dark',
+  newLightAlias: 'soundry-light',
+  newDarkAlias: 'soundry-dark',
 })
 </script>
 
