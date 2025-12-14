@@ -18,6 +18,7 @@ class DownloadItem {
     this.progress = 0
     this.message = ''
     this.web_download_url = null
+    this.timestamp = Date.now()
   }
   setDownloading() {
     this.web_status = STATUS.DOWNLOADING
@@ -49,8 +50,9 @@ class DownloadItem {
   }
 }
 
+const sessionSongIds = new Set()
+
 export function useProgressTracker() {
-  const sessionSongIds = new Set()
 
   function _findIndex(song) {
     return downloadQueue.value.findIndex(
@@ -105,7 +107,24 @@ API.ws_onerror((event) => {
 export function useDownloadManager() {
   const loading = ref(false)
   function fromURL(url) {
+    url = url.trim()
+    console.log('fromURL called with:', url)
     loading.value = true
+
+    // SoundCloud / YouTube Direct Support
+    if (url.includes('soundcloud.com') || url.includes('snd.sc') || url.includes('youtube.com') || url.includes('youtu.be')) {
+      const dummySong = {
+        url: url,
+        name: url,
+        artist: 'SoundCloud / YouTube',
+        cover_url: 'https://cdn-icons-png.flaticon.com/512/1384/1384060.png', // Generic or specific icon
+        song_id: url
+      }
+      queue(dummySong, true)
+      loading.value = false
+      return Promise.resolve()
+    }
+
     return API.open(url)
       .then((res) => {
         console.log('Received Response:', res)

@@ -18,7 +18,12 @@ function useSearchManager() {
       str.includes('://open.spotify.com/album/') ||
       str.includes('://open.spotify.com/playlist/') ||
       str.includes('://open.spotify.com/show/') ||
-      str.includes('://open.spotify.com/artist/')
+      str.includes('://open.spotify.com/artist/') ||
+      str.includes('soundcloud.com/') ||
+      str.includes('snd.sc/') ||
+      str.includes('youtube.com/') ||
+      str.includes('youtu.be/') ||
+      str.includes('music.youtube.com/')
     ) {
       return false
     }
@@ -29,7 +34,12 @@ function useSearchManager() {
       (str.includes('://open.spotify.com/track/') ||
         str.includes('://open.spotify.com/album/') ||
         str.includes('://open.spotify.com/playlist/') ||
-        str.includes('://open.spotify.com/artist/')) &&
+        str.includes('://open.spotify.com/artist/') ||
+        str.includes('soundcloud.com/') ||
+        str.includes('snd.sc/') ||
+        str.includes('youtube.com/') ||
+        str.includes('youtu.be/') ||
+        str.includes('music.youtube.com/')) &&
       localStorage.getItem('version') >= '4.2.1'
     ) {
       return true

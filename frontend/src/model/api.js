@@ -17,8 +17,7 @@ console.log('session ID: ', sessionID)
 getVersion()
 
 const wsConnection = new WebSocket(
-  `${config.WS_PROTOCOL}//${config.BACKEND}${
-    config.PORT !== '' ? ':' + config.PORT : ''
+  `${config.WS_PROTOCOL}//${config.BACKEND}${config.PORT !== '' ? ':' + config.PORT : ''
   }${config.BASEURL}/api/ws?client_id=${sessionID}`
 )
 
@@ -57,6 +56,12 @@ function open(songURL) {
 }
 
 function download(songURL) {
+  if (songURL && (songURL.includes('soundcloud.com') || songURL.includes('snd.sc'))) {
+    return API.post('/api/download/soundcloud', null, {
+      params: { url: songURL, client_id: sessionID },
+    })
+  }
+
   return API.post('/api/download/url', null, {
     params: { url: songURL, client_id: sessionID },
   })

@@ -3,8 +3,10 @@ import logging
 import os
 import sys
 from pathlib import Path
+import yt_dlp # Added yt-dlp
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request, BackgroundTasks # Added Request, BackgroundTasks
+from fastapi.responses import JSONResponse # Added JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from load_dotenv import load_dotenv
@@ -85,15 +87,20 @@ def web(web_settings: WebOptions, downloader_settings: DownloaderOptions):
         except FileNotFoundError:
             return []
 
-        files: list[str] = []
+        files = []
         for entry in entries:
             full_path = os.path.join(downloads_dir, entry)
             if os.path.isfile(full_path):
                 _, ext = os.path.splitext(entry)
                 if ext.lower() in audio_exts:
-                    files.append(entry)
+                    files.append({
+                        "name": entry,
+                        "timestamp": os.path.getmtime(full_path) * 1000, # JS expects ms
+                        "size": os.path.getsize(full_path)
+                    })
 
-        files.sort()
+        # Default sort by newest
+        files.sort(key=lambda x: x['timestamp'], reverse=True)
         return files
 
     @app_state.api.delete('/delete')
@@ -127,6 +134,46 @@ def web(web_settings: WebOptions, downloader_settings: DownloaderOptions):
         StaticFiles(directory=str(DOWNLOAD_DIR)),
         name='downloads',
     )
+
+    @app_state.api.post('/api/download/soundcloud')
+    def download_soundcloud(url: str, client_id: str):
+        """
+        Download a song from SoundCloud using yt-dlp.
+        """
+        logger.info(f"Starting SoundCloud download: {url}")
+        
+        try:
+            out_tmpl = str(DOWNLOAD_DIR / '%(uploader)s - %(title)s.%(ext)s')
+            ydl_opts = {
+                'format': 'bestaudio/best',
+                'outtmpl': out_tmpl,
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '192',
+                }, {
+                    'key': 'EmbedThumbnail',
+                }, {
+                    'key': 'FFmpegMetadata',
+                }],
+                'writethumbnail': True,
+                'quiet': False,
+                'no_warnings': True,
+            }
+
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=True)
+                filename = ydl.prepare_filename(info)
+                # changing extension to mp3 because of postprocessor
+                final_filename = os.path.splitext(filename)[0] + '.mp3'
+                
+            logger.info(f"SoundCloud download complete: {final_filename}")
+            # Return just the filename (basename) as the frontend expects
+            return os.path.basename(final_filename)
+            
+        except Exception as e:
+            logger.error(f"SoundCloud download failed: {str(e)}")
+            raise e
 
     # Add the static files for the SPA (must be mounted after /downloads)
     app_state.api.mount(
@@ -196,5 +243,6 @@ if __name__ == '__main__':
     SpotifyClient.init(**spotify_settings)
     spotify_client = SpotifyClient()
 
+    # Start web ui
     # Start web ui
     web(web_settings, downloader_settings)

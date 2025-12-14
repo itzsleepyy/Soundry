@@ -1,8 +1,7 @@
 import { createWebHistory, createRouter } from 'vue-router'
 import Home from '/src/views/Front.vue'
 import Search from '/src/views/Search.vue'
-import Download from '/src/views/Download.vue'
-import List from '/src/views/Downloads.vue'
+import DownloadsView from '/src/views/DownloadsView.vue'
 import config from '/src/config'
 
 const routes = [
@@ -17,14 +16,18 @@ const routes = [
     component: Search,
   },
   {
-    path: '/download',
-    name: 'Download',
-    component: Download,
+    path: '/downloads',
+    name: 'Downloads',
+    component: DownloadsView,
   },
+  // Redirect old routes to new one
   {
     path: '/list',
-    name: 'List',
-    component: List,
+    redirect: '/downloads'
+  },
+  {
+    path: '/download',
+    redirect: '/downloads'
   },
 ]
 
