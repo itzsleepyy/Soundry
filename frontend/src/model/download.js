@@ -26,8 +26,9 @@ class DownloadItem {
   setDownloaded() {
     this.web_status = STATUS.DOWNLOADED
   }
-  setError() {
+  setError(msg) {
     this.web_status = STATUS.ERROR
+    if (msg) this.message = msg
   }
   setWebURL(URL) {
     this.web_download_url = URL
@@ -104,6 +105,10 @@ API.ws_onerror((event) => {
   console.log('websocket error:', event)
 })
 
+import { useSettingsManager } from './settings'
+
+const sm = useSettingsManager()
+
 export function useDownloadManager() {
   const loading = ref(false)
   function fromURL(url) {
@@ -113,9 +118,16 @@ export function useDownloadManager() {
 
     // SoundCloud / YouTube Direct Support
     if (url.includes('soundcloud.com') || url.includes('snd.sc') || url.includes('youtube.com') || url.includes('youtu.be')) {
+      // Attempt to extract a readable name from URL
+      let name = url;
+      try {
+        const parts = url.split('/');
+        if (parts.length > 0) name = parts[parts.length - 1].replace(/-/g, ' ');
+      } catch (e) { }
+
       const dummySong = {
         url: url,
-        name: url,
+        name: name,
         artist: 'SoundCloud / YouTube',
         cover_url: 'https://cdn-icons-png.flaticon.com/512/1384/1384060.png', // Generic or specific icon
         song_id: url
@@ -154,7 +166,11 @@ export function useDownloadManager() {
   function download(song) {
     console.log('Downloading', song)
     progressTracker.getBySong(song).setDownloading()
-    API.download(song.url)
+
+    // Get current format
+    const format = sm.settings.value.format || 'mp3'
+
+    API.download(song.url, format)
       .then((res) => {
         console.log('Received Response:', res)
         if (res.status === 200) {
@@ -166,12 +182,18 @@ export function useDownloadManager() {
           progressTracker.getBySong(song).setDownloaded()
         } else {
           console.log('Error:', res)
-          progressTracker.getBySong(song).setError()
+          let msg = res.statusText || 'Error'
+          if (res.data && res.data.message) msg = res.data.message
+          progressTracker.getBySong(song).setError(msg)
         }
       })
       .catch((err) => {
-        console.log('Other Error:', err.message)
-        progressTracker.getBySong(song).setError()
+        let msg = err.message
+        if (err.response && err.response.data && err.response.data.message) {
+          msg = err.response.data.message
+        }
+        console.log('Download Error:', msg)
+        progressTracker.getBySong(song).setError(msg)
       })
   }
 

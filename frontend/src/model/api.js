@@ -55,15 +55,15 @@ function open(songURL) {
   }
 }
 
-function download(songURL) {
-  if (songURL && (songURL.includes('soundcloud.com') || songURL.includes('snd.sc'))) {
+function download(songURL, format = 'mp3') {
+  if (songURL && (songURL.includes('soundcloud.com') || songURL.includes('snd.sc') || songURL.includes('youtube.com') || songURL.includes('youtu.be'))) {
     return API.post('/api/download/soundcloud', null, {
-      params: { url: songURL, client_id: sessionID },
+      params: { url: songURL, client_id: sessionID, format: format },
     })
   }
 
   return API.post('/api/download/url', null, {
-    params: { url: songURL, client_id: sessionID },
+    params: { url: songURL, client_id: sessionID, format: format },
   })
 }
 

@@ -85,26 +85,27 @@
                 </button>
                 
                 <!-- Action -->
-                <a
-                  v-if="item.isDownloaded()"
-                  class="btn btn-circle btn-sm btn-success text-white border-none bg-success/80 hover:bg-success"
-                  href="javascript:;"
-                  @click="downloadFile(item.web_download_url)"
-                  title="Save"
-                >
-                  <Icon icon="clarity:download-line" class="w-4 h-4" />
-                </a>
-                <button
-                   v-else-if="item.isQueued()"
-                   class="btn btn-circle btn-sm btn-primary text-white border-none bg-primary/80 hover:bg-primary"
-                   @click="triggerDownload(item)"
-                   title="Convert"
-                >
-                   <Icon icon="clarity:download-cloud-line" class="w-4 h-4" />
-                </button>
-                <div v-else-if="item.isDownloading()" class="radial-progress text-primary text-[10px]" :style="`--value: ${item.progress}; --size: 2rem`">
-                    {{ Math.round(item.progress) }}
-                </div>
+            <a
+              v-if="item.isDownloaded()"
+              class="btn btn-circle btn-sm btn-success text-white border-none bg-success/80 hover:bg-success"
+              href="javascript:;"
+              @click="downloadFile(item.web_download_url)"
+              title="Save"
+            >
+              <Icon icon="clarity:download-line" class="w-4 h-4" />
+            </a>
+            <button
+               v-else-if="item.isQueued() || item.isErrored()"
+               class="btn btn-circle btn-sm btn-primary text-white border-none bg-primary/80 hover:bg-primary"
+               @click="triggerDownload(item)"
+               :title="item.isErrored() ? 'Retry' : 'Convert'"
+            >
+               <Icon v-if="item.isErrored()" icon="clarity:refresh-line" class="w-4 h-4" />
+               <Icon v-else icon="clarity:download-cloud-line" class="w-4 h-4" />
+            </button>
+            <div v-else-if="item.isDownloading()" class="radial-progress text-primary text-[10px]" :style="`--value: ${item.progress}; --size: 2rem`">
+                {{ Math.round(item.progress) }}
+            </div>
              </div>
           </div>
           
@@ -167,6 +168,14 @@
             >
                <Icon icon="clarity:download-cloud-line" class="w-5 h-5" />
                <span class="hidden sm:inline">Convert</span>
+            </button>
+            <button
+               v-else-if="downloadItem.isErrored()"
+               class="btn btn-warning btn-sm gap-2 text-white shadow-lg shadow-warning/20"
+               @click="triggerDownload(downloadItem)"
+            >
+               <Icon icon="clarity:refresh-line" class="w-5 h-5" />
+               <span class="hidden sm:inline">Retry</span>
             </button>
              <button v-else-if="downloadItem.progress === 0 && !downloadItem.isDownloading()" class="btn btn-ghost btn-square btn-sm loading"></button>
           </div>

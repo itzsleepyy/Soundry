@@ -77,11 +77,21 @@
          :key="file.name"
          class="group relative aspect-square rounded-xl overflow-hidden bg-base-200 shadow-md transition-all hover:shadow-xl hover:scale-[1.02] border border-base-content/5"
       >
-          <div class="absolute inset-0 flex flex-col items-center justify-center p-4">
-              <Icon icon="clarity:music-note-line" class="w-16 h-16 text-primary opacity-20 group-hover:opacity-10 transition-opacity" />
-              <div class="absolute bottom-4 left-4 right-4 text-center">
-                 <h3 class="font-bold text-sm line-clamp-2 leading-tight break-words text-base-content/80 group-hover:text-base-content">{{ file.name }}</h3>
-                 <p class="text-[10px] text-base-content/40 mt-1">{{ formatSub(file.size, file.timestamp) }}</p>
+          <div class="absolute inset-0 flex flex-col items-center justify-center p-0">
+              <img 
+                v-if="file.image" 
+                :src="`/downloads/${file.image}`" 
+                class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                loading="lazy"
+                alt="Cover"
+              />
+              <div v-else class="flex items-center justify-center w-full h-full bg-base-300">
+                  <Icon icon="clarity:music-note-line" class="w-16 h-16 text-primary opacity-20 group-hover:opacity-10 transition-opacity" />
+              </div>
+              
+              <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                 <h3 class="font-bold text-sm line-clamp-2 leading-tight break-words text-white shadow-sm">{{ file.name }}</h3>
+                 <p class="text-[10px] text-white/60 mt-1">{{ formatSub(file.size, file.timestamp) }}</p>
               </div>
           </div>
          

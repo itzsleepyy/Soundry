@@ -3,28 +3,34 @@ import { ref, computed } from 'vue'
 import API from '/src/model/api'
 
 const settings = ref({
-  audio_providers: ['youtube-music'],
+  audio_providers: ['youtube-music', 'youtube'],
   lyrics_providers: ['genius'],
   format: 'mp3',
-  output: '{artists} - {title}.{output-ext}',
+  output: '/downloads/{artists} - {title}.{output-ext}',
 })
 
 const settingsOptions = {
   audio_providers: ['youtube', 'youtube-music'],
   lyrics_providers: ['genius', 'musixmatch', 'azlyrics'],
   format: ['mp3', 'flac', 'ogg', 'opus', 'm4a'],
-  output: '{artists} - {title}.{output-ext}',
+  output: '/downloads/{artists} - {title}.{output-ext}',
 }
 
 API.getSettings().then((res) => {
   if (res.status === 200) {
     console.log('Received settings:', res.data)
     // Merge settings, keeping defaults if backend sends empty strings
+    // Ensure output always has /downloads/ prefix
+    let output = res.data.output || '/downloads/{artists} - {title}.{output-ext}'
+    if (!output.startsWith('/downloads')) {
+      output = '/downloads/' + output
+    }
     settings.value = {
       ...settings.value,
       ...res.data,
       format: res.data.format || 'mp3',
-      audio_providers: res.data.audio_providers?.length ? res.data.audio_providers : ['youtube-music'],
+      output: output,
+      audio_providers: res.data.audio_providers?.length ? res.data.audio_providers : ['youtube-music', 'youtube'],
       lyrics_providers: res.data.lyrics_providers?.length ? res.data.lyrics_providers : ['genius']
     }
   } else {

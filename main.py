@@ -76,14 +76,24 @@ def web(web_settings: WebOptions, downloader_settings: DownloaderOptions):
         dependencies=[Depends(get_current_state)],
     )
 
+    # Add exception handler for JSON 500 responses
+    @app_state.api.exception_handler(Exception)
+    async def global_exception_handler(request: Request, exc: Exception):
+        logger.error(f"Global exception: {str(exc)}")
+        return JSONResponse(
+            status_code=500,
+            content={"message": str(exc)},
+        )
+
     app_state.api.include_router(router)
 
     @app_state.api.get('/list')
     def list_downloads():
         downloads_dir = str(DOWNLOAD_DIR)
         audio_exts = {'.mp3', '.m4a', '.flac', '.ogg', '.wav', '.aac', '.opus'}
+        image_exts = {'.jpg', '.jpeg', '.png', '.webp'}
         try:
-            entries = os.listdir(downloads_dir)
+            entries = set(os.listdir(downloads_dir)) # Use set for O(1) lookup
         except FileNotFoundError:
             return []
 
@@ -91,12 +101,20 @@ def web(web_settings: WebOptions, downloader_settings: DownloaderOptions):
         for entry in entries:
             full_path = os.path.join(downloads_dir, entry)
             if os.path.isfile(full_path):
-                _, ext = os.path.splitext(entry)
+                basename, ext = os.path.splitext(entry)
                 if ext.lower() in audio_exts:
+                    # Look for matching image
+                    image_file = None
+                    for img_ext in image_exts:
+                        if (basename + img_ext) in entries:
+                            image_file = basename + img_ext
+                            break
+                    
                     files.append({
                         "name": entry,
                         "timestamp": os.path.getmtime(full_path) * 1000, # JS expects ms
-                        "size": os.path.getsize(full_path)
+                        "size": os.path.getsize(full_path),
+                        "image": image_file
                     })
 
         # Default sort by newest
@@ -136,44 +154,72 @@ def web(web_settings: WebOptions, downloader_settings: DownloaderOptions):
     )
 
     @app_state.api.post('/api/download/soundcloud')
-    def download_soundcloud(url: str, client_id: str):
+    def download_soundcloud(url: str, client_id: str, format: str = 'mp3'):
         """
         Download a song from SoundCloud using yt-dlp.
         """
-        logger.info(f"Starting SoundCloud download: {url}")
+        logger.info(f"Starting SoundCloud download: {url} in format {format}")
         
         try:
+            # Clean format to valid extension/codec
+            valid_formats = {'mp3', 'flac', 'm4a', 'opus', 'wav', 'ogg'}
+            if format not in valid_formats:
+                format = 'mp3'
+
             out_tmpl = str(DOWNLOAD_DIR / '%(uploader)s - %(title)s.%(ext)s')
+            
             ydl_opts = {
                 'format': 'bestaudio/best',
                 'outtmpl': out_tmpl,
-                'postprocessors': [{
-                    'key': 'FFmpegExtractAudio',
-                    'preferredcodec': 'mp3',
-                    'preferredquality': '192',
-                }, {
-                    'key': 'EmbedThumbnail',
-                }, {
-                    'key': 'FFmpegMetadata',
-                }],
+                'postprocessors': [
+                    {
+                        'key': 'FFmpegExtractAudio',
+                        'preferredcodec': format,
+                        'preferredquality': '192',
+                    },
+                    {
+                        'key': 'FFmpegThumbnailsConvertor',
+                        'format': 'jpg',
+                    },
+                    {
+                        'key': 'EmbedThumbnail',
+                    },
+                    {
+                        'key': 'FFmpegMetadata',
+                    }
+                ],
                 'writethumbnail': True,
                 'quiet': False,
                 'no_warnings': True,
+                'ignoreerrors': True, # Skip errors in playlist
             }
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
-                filename = ydl.prepare_filename(info)
-                # changing extension to mp3 because of postprocessor
-                final_filename = os.path.splitext(filename)[0] + '.mp3'
                 
-            logger.info(f"SoundCloud download complete: {final_filename}")
-            # Return just the filename (basename) as the frontend expects
+                # Handle Playlist vs Single Track
+                if 'entries' in info:
+                    entries = list(info['entries'])
+                    if entries:
+                        # Return the name of the first track for UI feedback
+                        # (The loop handled downloads, entries contains info dicts)
+                        # We use the first one to determine the filename pattern
+                        first_entry = entries[0]
+                        # prepare_filename expects a dict
+                        filename = ydl.prepare_filename(first_entry)
+                        final_filename = os.path.splitext(filename)[0] + '.' + format
+                    else:
+                        return "Empty Playlist"
+                else:
+                    filename = ydl.prepare_filename(info)
+                    final_filename = os.path.splitext(filename)[0] + '.' + format
+                
+            logger.info(f"SoundCloud download complete (or first file): {final_filename}")
             return os.path.basename(final_filename)
             
         except Exception as e:
             logger.error(f"SoundCloud download failed: {str(e)}")
-            raise e
+            return JSONResponse(status_code=500, content={"message": str(e)})
 
     # Add the static files for the SPA (must be mounted after /downloads)
     app_state.api.mount(
@@ -232,6 +278,8 @@ if __name__ == '__main__':
     downloader_settings['output'] = str(
         DOWNLOAD_DIR / '{artists} - {title}.{output-ext}'
     )
+    # Add fallback audio providers: try YouTube if YouTube Music fails
+    downloader_settings['audio_providers'] = ['youtube-music', 'youtube']
     spotify_settings['client_id'] = os.getenv(
         'CLIENT_ID', '5f573c9620494bae87890c0f08a60293'
     )
