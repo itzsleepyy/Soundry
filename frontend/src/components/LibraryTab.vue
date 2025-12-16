@@ -77,6 +77,11 @@
          :key="file.name"
          class="group relative aspect-square rounded-xl overflow-hidden bg-base-200 shadow-md transition-all hover:shadow-xl hover:scale-[1.02] border border-base-content/5"
       >
+          <!-- Expiry Badge -->
+          <div class="absolute top-2 right-2 z-20 badge badge-xs font-mono shadow-md border-none opacity-90" :class="getExpiryColor(file.timestamp)">
+            {{ getExpiresIn(file.timestamp) }}
+          </div>
+
           <div class="absolute inset-0 flex flex-col items-center justify-center p-0">
               <img 
                 v-if="file.image" 
@@ -127,6 +132,7 @@
               <th>Name</th>
               <th>Size</th>
               <th>Date</th>
+              <th>Expires</th>
               <th class="text-right">Actions</th>
             </tr>
           </thead>
@@ -142,6 +148,11 @@
               </td>
               <td class="text-sm opacity-60 whitespace-nowrap">{{ formatBytes(file.size) }}</td>
               <td class="text-sm opacity-60 whitespace-nowrap">{{ formatDate(file.timestamp) }}</td>
+              <td class="text-sm whitespace-nowrap">
+                  <div class="badge badge-sm border-none gap-1" :class="getExpiryColor(file.timestamp)">
+                     {{ getExpiresIn(file.timestamp) }}
+                  </div>
+              </td>
               <td class="text-right">
                   <div class="flex items-center justify-end gap-2">
                       <a
@@ -199,6 +210,30 @@ const formatBytes = (bytes, decimals = 2) => {
 }
 const formatDate = (ms) => new Date(ms).toLocaleDateString()
 const formatSub = (size, ms) => `${formatBytes(size)} • ${formatDate(ms)}`
+
+const getExpiresIn = (timestamp) => {
+    const expiresAt = timestamp + (24 * 60 * 60 * 1000)
+    const diff = expiresAt - Date.now()
+    
+    if (diff <= 0) return 'Expired'
+    
+    const hours = Math.ceil(diff / (1000 * 60 * 60))
+    if (hours > 1) return `${hours}h left`
+    
+    const minutes = Math.ceil(diff / (1000 * 60))
+    return `${minutes}m left`
+}
+
+const getExpiryColor = (timestamp) => {
+    const expiresAt = timestamp + (24 * 60 * 60 * 1000)
+    const diff = expiresAt - Date.now()
+    const hours = diff / (1000 * 60 * 60)
+    
+    if (diff <= 0) return 'badge-error'
+    if (hours < 1) return 'badge-error'
+    if (hours < 6) return 'badge-warning'
+    return 'badge-success'
+}
 
 const displayFiles = computed(() => {
     let list = [...files.value]

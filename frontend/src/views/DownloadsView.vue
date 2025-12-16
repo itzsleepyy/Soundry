@@ -9,7 +9,7 @@
             :class="activeTab === 'queue' ? 'tab-active border-primary text-primary font-bold' : 'text-base-content/60 hover:text-base-content/80'"
             @click="activeTab = 'queue'"
           >
-             Queue
+             Session
              <div v-if="queueCount > 0" class="badge badge-sm badge-ghost ml-2 bg-base-300">{{ queueCount }}</div>
           </a>
           <a 

@@ -1,52 +1,75 @@
 <template>
   <div class="h-full">
-    <div class="flex flex-col md:flex-row justify-between items-center mb-6 p-4 bg-base-200/50 rounded-xl shadow-lg border border-base-300/50 backdrop-blur-md gap-4">
-      <h2 class="text-xl font-bold tracking-tight">Session Queue</h2>
-      
-      <!-- Controls -->
-      <div v-if="filteredQueue.length > 0" class="flex flex-wrap gap-3 items-center justify-end w-full md:w-auto">
-         <!-- Sort -->
-         <select v-model="sortOption" class="select select-bordered select-sm bg-base-100 focus:outline-none w-36">
-            <option value="date-desc">Newest First</option>
-            <option value="date-asc">Oldest First</option>
-            <option value="name-asc">Name (A-Z)</option>
-         </select>
-         
-         <div class="h-6 w-px bg-base-content/10 hidden sm:block"></div>
+    <div class="flex flex-col gap-4 mb-6 p-4 bg-base-200/50 rounded-xl shadow-lg border border-base-300/50 backdrop-blur-md">
+       <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+          <h2 class="text-xl font-bold tracking-tight">Current Session</h2>
+          
+          <!-- Controls -->
+          <div v-if="filteredQueue.length > 0" class="flex flex-wrap gap-3 items-center justify-end w-full md:w-auto">
+             <!-- Sort -->
+             <select v-model="sortOption" class="select select-bordered select-sm bg-base-100 focus:outline-none w-36">
+                <option value="date-desc">Newest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="name-asc">Name (A-Z)</option>
+             </select>
+             
+             <div class="h-6 w-px bg-base-content/10 hidden sm:block"></div>
+    
+             <!-- Format -->
+             <select v-model="sm.settings.value.format" class="select select-bordered select-sm w-28 bg-base-100 focus:outline-none">
+                <option disabled value="">Format</option>
+                <option v-for="fmt in sm.settingsOptions.format" :key="fmt" :value="fmt">{{ fmt.toUpperCase() }}</option>
+             </select>
+             
+             <div class="h-6 w-px bg-base-content/10 hidden sm:block"></div>
+    
+             <!-- View Toggle -->
+             <div class="join">
+                <button 
+                    class="btn btn-sm join-item" 
+                    :class="viewMode === 'list' ? 'btn-active btn-primary' : 'btn-ghost'"
+                    @click="viewMode = 'list'"
+                    title="List View"
+                >
+                    <Icon icon="clarity:list-line" class="w-4 h-4" />
+                </button>
+                <button 
+                    class="btn btn-sm join-item" 
+                    :class="viewMode === 'grid' ? 'btn-active btn-primary' : 'btn-ghost'"
+                    @click="viewMode = 'grid'"
+                    title="Grid View"
+                >
+                    <Icon icon="clarity:grid-view-line" class="w-4 h-4" />
+                </button>
+             </div>
+    
+             <div class="h-6 w-px bg-base-content/10 hidden sm:block"></div>
+    
+             <button @click="downloadAll" class="btn btn-primary btn-sm gap-2 pl-3 pr-4 shadow-lg shadow-primary/20" title="Start pending downloads">
+                <Icon icon="clarity:play-line" />
+                <span class="hidden sm:inline">Start All</span>
+             </button>
+             
+             <button @click="onSaveSession" class="btn btn-success btn-sm gap-2 pl-3 pr-4 text-white shadow-lg shadow-success/20" title="Download Zip">
+                <Icon icon="clarity:archive-line" />
+                <span class="hidden sm:inline">Download Zip</span>
+             </button>
+          </div>
+       </div>
 
-         <!-- Format -->
-         <select v-model="sm.settings.value.format" class="select select-bordered select-sm w-28 bg-base-100 focus:outline-none">
-            <option disabled value="">Format</option>
-            <option v-for="fmt in sm.settingsOptions.format" :key="fmt" :value="fmt">{{ fmt.toUpperCase() }}</option>
-         </select>
-         
-         <div class="h-6 w-px bg-base-content/10 hidden sm:block"></div>
-
-         <!-- View Toggle -->
-         <div class="join">
-            <button 
-                class="btn btn-sm join-item" 
-                :class="viewMode === 'list' ? 'btn-active btn-primary' : 'btn-ghost'"
-                @click="viewMode = 'list'"
-                title="List View"
-            >
-                <Icon icon="clarity:list-line" class="w-4 h-4" />
-            </button>
-            <button 
-                class="btn btn-sm join-item" 
-                :class="viewMode === 'grid' ? 'btn-active btn-primary' : 'btn-ghost'"
-                @click="viewMode = 'grid'"
-                title="Grid View"
-            >
-                <Icon icon="clarity:grid-view-line" class="w-4 h-4" />
-            </button>
-         </div>
-
-         <button @click="downloadAll" class="btn btn-primary btn-sm gap-2 pl-3 pr-4 shadow-lg shadow-primary/20">
-            <Icon icon="clarity:download-cloud-line" />
-            <span class="hidden sm:inline">Download All</span>
-         </button>
-      </div>
+       <!-- Session Progress -->
+       <div v-if="sessionStats" class="w-full bg-base-100/30 rounded-lg p-3 flex items-center gap-4 animate-in fade-in slide-in-from-top-2">
+            <div class="flex-1 flex flex-col gap-1">
+                <div class="flex justify-between text-xs font-bold opacity-70">
+                    <span class="flex items-center gap-2">
+                        <span class="loading loading-spinner loading-xs text-primary"></span>
+                        {{ sessionStats.text }}
+                    </span>
+                    <span>{{ sessionStats.percent }}%</span>
+                </div>
+                <progress class="progress progress-primary w-full h-2" :value="sessionStats.percent" max="100"></progress>
+            </div>
+       </div>
     </div>
 
     <!-- Empty State -->
@@ -55,7 +78,7 @@
            <Icon icon="clarity:music-note-line" class="w-10 h-10 text-base-content/30" />
        </div>
        <div>
-           <h2 class="text-xl font-bold opacity-80">No downloads this session</h2>
+           <h2 class="text-xl font-bold opacity-80">No items in this session</h2>
            <p class="text-base-content/50 mt-2 max-w-xs mx-auto">
              Search for a song or paste a URL to start downloading.
            </p>
@@ -189,6 +212,7 @@ import { computed, ref } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useProgressTracker, useDownloadManager } from '../model/download'
 import { useSettingsManager } from '../model/settings'
+import API from '/src/model/api'
 
 const pt = useProgressTracker()
 const dm = useDownloadManager()
@@ -235,6 +259,79 @@ function downloadAll() {
       }
    })
 }
+
+async function onSaveSession() {
+    // 1. Get completed items from filteredQueue
+    const completedItems = filteredQueue.value.filter(item => item.isDownloaded())
+    
+    if (completedItems.length === 0) {
+        alert("No completed downloads to save.")
+        return
+    }
+
+    const files = completedItems.map(item => {
+        // We need the filename on the server.
+        // item.web_download_url is like "/downloads/Artist - Title.mp3"
+        // We strip /downloads/
+        // Assuming web_download_url is valid relative to DOWNLOAD_DIR via simple strip
+        // Or if item has `filename` prop? 
+        // Checking backend model: `list_downloads` returns name.
+        // DownloadItem in frontend: has `web_download_url`.
+        // Let's decodeURI and strip /downloads/
+        const url = decodeURIComponent(item.web_download_url)
+        return url.replace(/^\/downloads\//, '')
+    })
+
+    try {
+        const response = await API.downloadZip(files)
+        // trigger download
+        const blob = new Blob([response.data], { type: 'application/zip' })
+        const link = document.createElement('a')
+        link.href = window.URL.createObjectURL(blob)
+        link.download = 'soundry-session.zip'
+        link.click()
+    } catch (e) {
+        console.error(e)
+        alert("Failed to create zip archive.")
+    }
+}
+
+// Session Progress Stats
+const sessionStats = computed(() => {
+    const list = filteredQueue.value
+    if (!list.length) return null
+    
+    const downloading = list.filter(i => i.isDownloading())
+    const queued = list.filter(i => i.isQueued())
+    const completed = list.filter(i => i.isDownloaded())
+    
+    const activeCount = downloading.length + queued.length
+    if (activeCount === 0) return null // Nothing happening
+
+    // Calculate aggregate progress of ACTIVE downloads only for smoother bar
+    // Or overall session progress? 
+    // Let's do Overall Session Progress: (Completed + (Active * Progress)) / Total
+    // Wait, total includes errors? Exclude errors.
+    const total = list.length
+    const totalProgress = list.reduce((acc, item) => {
+        if (item.isDownloaded()) return acc + 100
+        if (item.isDownloading()) return acc + item.progress
+        return acc
+    }, 0)
+    
+    const percent = Math.round(totalProgress / total)
+    
+    // Estimate Time (Very rough mock as we don't have download speed in frontend model yet)
+    // We can count items left. Average 30s per item?
+    // Let's just say "Processing X items..."
+    const itemsLeft = activeCount
+    
+    return {
+        percent,
+        itemsLeft,
+        text: itemsLeft === 1 ? '1 item remaining' : `${itemsLeft} items remaining`
+    }
+})
 </script>
 
 <style scoped></style>

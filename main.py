@@ -1,14 +1,21 @@
 import asyncio
 import logging
 import os
+import shutil
 import sys
+import time
+import zipfile
+import io
+from typing import List
+from pydantic import BaseModel
 from pathlib import Path
 import yt_dlp # Added yt-dlp
 
 from fastapi import Depends, FastAPI, Request, BackgroundTasks # Added Request, BackgroundTasks
-from fastapi.responses import JSONResponse # Added JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse # Added JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from load_dotenv import load_dotenv
 from spotdl.types.options import DownloaderOptions, WebOptions
 from spotdl.utils.arguments import parse_arguments
@@ -121,6 +128,61 @@ def web(web_settings: WebOptions, downloader_settings: DownloaderOptions):
         files.sort(key=lambda x: x['timestamp'], reverse=True)
         return files
 
+    class ZipRequest(BaseModel):
+        files: List[str]
+
+    @app_state.api.post('/api/download/zip')
+    def download_zip(request: ZipRequest):
+        logger.info(f"Streaming zip for {len(request.files)} files")
+
+        def iter_zip():
+            class ZipBuffer:
+                def __init__(self):
+                    self.data = []
+                    self.pos = 0
+                
+                def write(self, b):
+                    self.data.append(b)
+                    self.pos += len(b)
+                    return len(b)
+                
+                def tell(self):
+                    return self.pos
+                
+                def flush(self):
+                    pass
+                
+                def seekable(self):
+                    return False
+                    
+                def get_and_clear(self):
+                    if not self.data:
+                        return b""
+                    chunk = b"".join(self.data)
+                    self.data = []
+                    return chunk
+
+            zip_buffer = ZipBuffer()
+            
+            with zipfile.ZipFile(zip_buffer, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+                for filename in request.files:
+                    file_path = (DOWNLOAD_DIR / filename).resolve()
+                    if not str(file_path).startswith(str(DOWNLOAD_DIR.resolve())):
+                        continue
+                        
+                    if file_path.exists() and file_path.is_file():
+                        zf.write(file_path, arcname=filename)
+                        yield zip_buffer.get_and_clear()
+            
+            # Final yield for Central Directory
+            yield zip_buffer.get_and_clear()
+        
+        return StreamingResponse(
+            iter_zip(), 
+            media_type="application/zip", 
+            headers={"Content-Disposition": "attachment; filename=soundry-session.zip"}
+        )
+
     @app_state.api.delete('/delete')
     def delete_download(file: str):
         downloads_dir = str(DOWNLOAD_DIR)
@@ -221,10 +283,19 @@ def web(web_settings: WebOptions, downloader_settings: DownloaderOptions):
             logger.error(f"SoundCloud download failed: {str(e)}")
             return JSONResponse(status_code=500, content={"message": str(e)})
 
+    # Custom SPA Static Files handler to fallback to index.html
+    class CustomSPAStaticFiles(StaticFiles):
+        async def get_response(self, path: str, scope):
+            try:
+                return await super().get_response(path, scope)
+            except (StarletteHTTPException, Exception):
+                # Fallback to index.html for any 404 (SPA routing)
+                return await super().get_response("index.html", scope)
+
     # Add the static files for the SPA (must be mounted after /downloads)
     app_state.api.mount(
         '/',
-        SPAStaticFiles(directory=web_app_dir, html=True),
+        CustomSPAStaticFiles(directory=web_app_dir, html=True),
         name='static',
     )
     config = Config(
@@ -260,6 +331,32 @@ def web(web_settings: WebOptions, downloader_settings: DownloaderOptions):
         )
 
     logger.info('Starting web server \n')
+
+    async def cleanup_loop():
+        """Janitor task to delete files older than 24h."""
+        while True:
+            logger.info("Running janitor cleanup...")
+            now = time.time()
+            retention = 86400 # 24 hours
+            try:
+                for root, dirs, files in os.walk(DOWNLOAD_DIR):
+                    for name in files:
+                        file_path = os.path.join(root, name)
+                        try:
+                            if os.path.isfile(file_path):
+                                mtime = os.path.getmtime(file_path)
+                                if now - mtime > retention:
+                                    os.remove(file_path)
+                                    logger.info(f"Janitor deleted expired file: {name}")
+                        except Exception as e:
+                            logger.error(f"Error checking/deleting file {name}: {e}")
+            except Exception as e:
+                logger.error(f"Janitor loop error: {e}")
+            
+            await asyncio.sleep(600) # Check every 10 minutes
+
+    # Start janitor
+    app_state.loop.create_task(cleanup_loop())
 
     # Start the web server
     app_state.loop.run_until_complete(app_state.server.serve())

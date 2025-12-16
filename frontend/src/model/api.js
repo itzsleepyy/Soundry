@@ -83,6 +83,10 @@ function deleteDownload(file) {
   return API.delete('/delete', { params: { file } })
 }
 
+function downloadZip(files) {
+  return API.post('/api/download/zip', { files }, { responseType: 'blob' })
+}
+
 function getSettings() {
   return API.get('/api/settings', { params: { client_id: sessionID } })
 }
@@ -106,6 +110,7 @@ export default {
   downloadFileURL,
   listDownloads,
   deleteDownload,
+  downloadZip,
   getSettings,
   setSettings,
   check_for_update,
