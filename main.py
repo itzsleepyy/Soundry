@@ -208,6 +208,9 @@ def web(web_settings: WebOptions, downloader_settings: DownloaderOptions):
         allow_headers=['*'],
     )
 
+    # Ensure the downloads directory exists
+    DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
     # Expose downloads as static files for direct links
     app_state.api.mount(
         '/downloads',
