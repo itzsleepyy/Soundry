@@ -10,34 +10,27 @@
         Built for audiophiles and collectors.
       </p>
       <div class="flex gap-4 mt-4">
-         <a href="https://github.com/alexlewis/soundry" target="_blank" class="btn btn-ghost btn-circle btn-sm">
+         <a href="https://github.com/LOL/soundry" target="_blank" class="btn btn-ghost btn-circle btn-sm">
              <Icon icon="mdi:github" class="w-5 h-5" />
-         </a>
-         <a href="#" class="btn btn-ghost btn-circle btn-sm">
-             <Icon icon="mdi:discord" class="w-5 h-5" />
-         </a>
-         <a href="#" class="btn btn-ghost btn-circle btn-sm">
-             <Icon icon="mdi:twitter" class="w-5 h-5" />
          </a>
       </div>
     </aside> 
     <nav>
       <header class="footer-title opacity-60">Application</header> 
       <router-link to="/" class="link link-hover">Home</router-link>
-      <router-link to="/" class="link link-hover">Library</router-link>
-      <router-link to="/" class="link link-hover">Queue</router-link>
+      <router-link to="/downloads" class="link link-hover">Downloads</router-link>
     </nav> 
     <nav>
       <header class="footer-title opacity-60">Project</header> 
-      <a href="https://github.com/alexlewis/soundry" target="_blank" class="link link-hover">GitHub</a> 
+      <a href="https://github.com/LOL/soundry" target="_blank" class="link link-hover">GitHub</a> 
       <router-link to="/about" class="link link-hover">About</router-link> 
       <router-link to="/changelog" class="link link-hover">Changelog</router-link>
     </nav> 
     <nav>
       <header class="footer-title opacity-60">Legal</header> 
-      <a class="link link-hover">Privacy Policy</a> 
-      <a class="link link-hover">Terms of Service</a>
-      <a class="link link-hover">Disclaimer</a>
+      <router-link to="/privacy" class="link link-hover">Privacy Policy</router-link> 
+      <router-link to="/terms" class="link link-hover">Terms of Service</router-link>
+      <router-link to="/disclaimer" class="link link-hover">Disclaimer</router-link>
     </nav>
   </footer>
   <footer class="footer px-10 py-4 border-t border-white/5 bg-neutral/90 text-neutral-content border-base-300">

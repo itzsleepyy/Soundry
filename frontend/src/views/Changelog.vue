@@ -1,161 +1,95 @@
 <template>
-  <div class="min-h-screen bg-base-100">
-    <div class="max-w-4xl mx-auto px-6 py-16">
+  <div class="min-h-screen bg-base-100 py-20 px-6">
+    <div class="max-w-3xl mx-auto">
+      
       <!-- Header -->
-      <div class="text-center mb-16">
-        <div class="flex items-center justify-center gap-3 mb-6">
-          <Icon icon="clarity:history-line" class="w-16 h-16 text-primary" />
-          <h1 class="text-5xl font-bold tracking-tight">Changelog</h1>
-        </div>
-        <p class="text-xl text-base-content/60 max-w-2xl mx-auto">
+      <div class="mb-20">
+        <h1 class="text-6xl font-bold mb-6 tracking-tight">Changelog</h1>
+        <p class="text-xl text-base-content/60 leading-relaxed">
           Track the evolution of Soundry
         </p>
       </div>
 
-      <!-- Version 2.1.0 (Latest) -->
-      <div class="card bg-primary/5 shadow-xl mb-8 border-2 border-primary/20 backdrop-blur-md">
-        <div class="card-body">
-          <div class="flex items-start justify-between mb-4">
-            <div>
-              <div class="flex items-center gap-3 mb-2">
-                <h2 class="text-3xl font-bold">v2.1.0</h2>
-                <span class="badge badge-primary">Latest</span>
-              </div>
-              <p class="text-sm opacity-60">December 17, 2025</p>
-            </div>
+      <!-- Versions -->
+      <div class="space-y-16">
+        
+        <!-- v2.1.0 -->
+        <div>
+          <div class="flex items-baseline gap-4 mb-6">
+            <h2 class="text-3xl font-bold">v2.1.0</h2>
+            <span class="text-sm text-primary">Latest</span>
+            <span class="text-sm text-base-content/40">Dec 17, 2025</span>
           </div>
           
           <div class="space-y-6">
-            <!-- Added -->
             <div>
-              <h3 class="font-bold text-lg flex items-center gap-2 mb-3">
-                <Icon icon="clarity:plus-circle-line" class="w-5 h-5 text-success" />
-                Added
-              </h3>
-              <ul class="space-y-2 ml-7">
-                <li class="flex items-start gap-2">
-                  <Icon icon="clarity:dot-circle-line" class="w-4 h-4 mt-1 text-primary flex-shrink-0" />
-                  <span><strong>Library Search</strong> - Filter your downloads with real-time search</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <Icon icon="clarity:dot-circle-line" class="w-4 h-4 mt-1 text-primary flex-shrink-0" />
-                  <span><strong>Pagination</strong> - Browse large libraries with 50 items per page</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <Icon icon="clarity:dot-circle-line" class="w-4 h-4 mt-1 text-primary flex-shrink-0" />
-                  <span><strong>About Page</strong> - Learn about Soundry's mission</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <Icon icon="clarity:dot-circle-line" class="w-4 h-4 mt-1 text-primary flex-shrink-0" />
-                  <span><strong>Changelog</strong> - Track updates and improvements</span>
-                </li>
+              <h3 class="text-sm font-bold uppercase tracking-wide text-base-content/40 mb-3">Added</h3>
+              <ul class="space-y-2 text-base-content/80">
+                <li>Library search with real-time filtering</li>
+                <li>Pagination (50 items per page)</li>
+                <li>About page</li>
+                <li>Changelog page</li>
               </ul>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Version 2.0.0 -->
-      <div class="card bg-base-200/50 shadow-xl mb-8 border border-base-300/50 backdrop-blur-md">
-        <div class="card-body">
-          <div class="flex items-start justify-between mb-4">
-            <div>
-              <h2 class="text-3xl font-bold">v2.0.0</h2>
-              <p class="text-sm opacity-60">December 16, 2025</p>
-            </div>
+        <!-- Divider -->
+        <div class="border-t border-base-content/10"></div>
+
+        <!-- v2.0.0 -->
+        <div>
+          <div class="flex items-baseline gap-4 mb-6">
+            <h2 class="text-3xl font-bold">v2.0.0</h2>
+            <span class="text-sm text-base-content/40">Dec 16, 2025</span>
           </div>
           
           <div class="space-y-6">
-            <!-- Added -->
             <div>
-              <h3 class="font-bold text-lg flex items-center gap-2 mb-3">
-                <Icon icon="clarity:plus-circle-line" class="w-5 h-5 text-success" />
-                Added
-              </h3>
-              <ul class="space-y-2 ml-7">
-                <li class="flex items-start gap-2">
-                  <Icon icon="clarity:dot-circle-line" class="w-4 h-4 mt-1 text-primary flex-shrink-0" />
-                  <span><strong>Session Management</strong> - Batch download all files as ZIP</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <Icon icon="clarity:dot-circle-line" class="w-4 h-4 mt-1 text-primary flex-shrink-0" />
-                  <span><strong>Session Progress Bar</strong> - Track overall download progress</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <Icon icon="clarity:dot-circle-line" class="w-4 h-4 mt-1 text-primary flex-shrink-0" />
-                  <span><strong>Auto-Cleanup</strong> - Files auto-delete after 24 hours</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <Icon icon="clarity:dot-circle-line" class="w-4 h-4 mt-1 text-primary flex-shrink-0" />
-                  <span><strong>SoundCloud Support</strong> - Download from SoundCloud</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <Icon icon="clarity:dot-circle-line" class="w-4 h-4 mt-1 text-primary flex-shrink-0" />
-                  <span><strong>Modern UI Redesign</strong> - Glassmorphism, dark mode, grid/list views</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <Icon icon="clarity:dot-circle-line" class="w-4 h-4 mt-1 text-primary flex-shrink-0" />
-                  <span><strong>Soundry Branding</strong> - Complete rebrand from Downtify</span>
-                </li>
+              <h3 class="text-sm font-bold uppercase tracking-wide text-base-content/40 mb-3">Added</h3>
+              <ul class="space-y-2 text-base-content/80">
+                <li>Session management with batch ZIP download</li>
+                <li>Session-wide progress tracking</li>
+                <li>24-hour auto-cleanup for downloads</li>
+                <li>SoundCloud support</li>
+                <li>Modern UI redesign (glassmorphism, grid/list views)</li>
+                <li>Complete rebrand from Downtify to Soundry</li>
               </ul>
             </div>
             
-            <!-- Fixed -->
             <div>
-              <h3 class="font-bold text-lg flex items-center gap-2 mb-3">
-                <Icon icon="clarity:wrench-line" class="w-5 h-5 text-info" />
-                Fixed
-              </h3>
-              <ul class="space-y-2 ml-7">
-                <li class="flex items-start gap-2">
-                  <Icon icon="clarity:dot-circle-line" class="w-4 h-4 mt-1 text-primary flex-shrink-0" />
-                  <span>ZIP streaming corruption and performance</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <Icon icon="clarity:dot-circle-line" class="w-4 h-4 mt-1 text-primary flex-shrink-0" />
-                  <span>SPA routing (404 on page refresh)</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <Icon icon="clarity:dot-circle-line" class="w-4 h-4 mt-1 text-primary flex-shrink-0" />
-                  <span>Coolify deployment issues</span>
-                </li>
+              <h3 class="text-sm font-bold uppercase tracking-wide text-base-content/40 mb-3">Fixed</h3>
+              <ul class="space-y-2 text-base-content/80">
+                <li>ZIP streaming corruption and performance</li>
+                <li>SPA routing (404 on refresh)</li>
+                <li>Coolify deployment compatibility</li>
               </ul>
             </div>
 
-            <!-- Changed -->
             <div>
-              <h3 class="font-bold text-lg flex items-center gap-2 mb-3">
-                <Icon icon="clarity:refresh-line" class="w-5 h-5 text-warning" />
-                Changed
-              </h3>
-              <ul class="space-y-2 ml-7">
-                <li class="flex items-start gap-2">
-                  <Icon icon="clarity:dot-circle-line" class="w-4 h-4 mt-1 text-primary flex-shrink-0" />
-                  <span>Multi-stage Dockerfile (builds frontend in Docker)</span>
-                </li>
-                <li class="flex items-start gap-2">
-                  <Icon icon="clarity:dot-circle-line" class="w-4 h-4 mt-1 text-primary flex-shrink-0" />
-                  <span>Removed pytube dependency (yt-dlp only)</span>
-                </li>
+              <h3 class="text-sm font-bold uppercase tracking-wide text-base-content/40 mb-3">Changed</h3>
+              <ul class="space-y-2 text-base-content/80">
+                <li>Multi-stage Dockerfile for self-contained builds</li>
+                <li>Removed pytube dependency (yt-dlp only)</li>
               </ul>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- CTA -->
-      <div class="text-center mt-12">
-        <router-link to="/" class="btn btn-primary btn-lg gap-2">
-          <Icon icon="clarity:home-line" class="w-5 h-5" />
-          Back to Home
-        </router-link>
+        <!-- Divider -->
+        <div class="border-t border-base-content/10"></div>
+
+        <!-- Footer -->
+        <div class="text-center pt-8">
+          <router-link to="/" class="btn btn-ghost">Back to Home</router-link>
+        </div>
+
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { Icon } from '@iconify/vue'
 </script>
 
 <style scoped>

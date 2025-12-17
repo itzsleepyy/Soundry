@@ -4,6 +4,10 @@ import Search from '/src/views/Search.vue'
 import DownloadsView from '/src/views/DownloadsView.vue'
 import About from '/src/views/About.vue'
 import Changelog from '/src/views/Changelog.vue'
+import Privacy from '/src/views/Privacy.vue'
+import Terms from '/src/views/Terms.vue'
+import Disclaimer from '/src/views/Disclaimer.vue'
+import NotFound from '/src/views/NotFound.vue'
 import config from '/src/config'
 
 const routes = [
@@ -32,6 +36,21 @@ const routes = [
     name: 'Changelog',
     component: Changelog,
   },
+  {
+    path: '/privacy',
+    name: 'Privacy',
+    component: Privacy,
+  },
+  {
+    path: '/terms',
+    name: 'Terms',
+    component: Terms,
+  },
+  {
+    path: '/disclaimer',
+    name: 'Disclaimer',
+    component: Disclaimer,
+  },
   // Redirect old routes to new one
   {
     path: '/list',
@@ -40,6 +59,12 @@ const routes = [
   {
     path: '/download',
     redirect: '/downloads'
+  },
+  // 404 catch-all
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: NotFound,
   },
 ]
 
