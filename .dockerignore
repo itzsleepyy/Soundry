@@ -1,14 +1,30 @@
-.github
-.venv
-.gitignore
-.python-version
-README.md
-.env
-pyproject.toml
-.ruff_cache/
-.git/
-__pycache__
+# Dependencies
+node_modules/
+__pycache__/
 *.pyc
-.mypy_cache
-uv.lock
-.vscode
+*.pyo
+.git/
+.gitignore
+
+# Build outputs (local only)
+downloads/
+*.log
+
+# Environment
+.env
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Tests
+tests/
+*.test.js
+
+# Documentation (optional - uncomment if you want smaller builds)
+# *.md
+# LICENSE

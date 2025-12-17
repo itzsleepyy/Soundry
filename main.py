@@ -208,6 +208,19 @@ def web(web_settings: WebOptions, downloader_settings: DownloaderOptions):
         allow_headers=['*'],
     )
 
+    # SPA routing: Catch 404s for non-API routes and serve index.html
+    @app_state.api.exception_handler(404)
+    async def spa_404_handler(request: Request, exc):
+        # If request is for API, return JSON 404
+        if request.url.path.startswith('/api/'):
+            return JSONResponse(status_code=404, content={"detail": "Not Found"})
+        # Otherwise serve index.html for SPA routing
+        index_path = Path(web_app_dir) / "index.html"
+        if index_path.exists():
+            from fastapi.responses import FileResponse
+            return FileResponse(index_path, media_type="text/html")
+        return JSONResponse(status_code=404, content={"detail": "Not Found"})
+
     # Ensure the downloads directory exists
     DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
     logger.info(f"Downloads directory: {DOWNLOAD_DIR} (exists: {DOWNLOAD_DIR.exists()}, writable: {os.access(str(DOWNLOAD_DIR), os.W_OK)})")
