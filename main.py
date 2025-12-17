@@ -210,6 +210,7 @@ def web(web_settings: WebOptions, downloader_settings: DownloaderOptions):
 
     # Ensure the downloads directory exists
     DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    logger.info(f"Downloads directory: {DOWNLOAD_DIR} (exists: {DOWNLOAD_DIR.exists()}, writable: {os.access(str(DOWNLOAD_DIR), os.W_OK)})")
 
     # Expose downloads as static files for direct links
     app_state.api.mount(
@@ -378,6 +379,7 @@ if __name__ == '__main__':
     downloader_settings['output'] = str(
         DOWNLOAD_DIR / '{artists} - {title}.{output-ext}'
     )
+    logger.info(f"Spotdl output path configured: {downloader_settings['output']}")
     # Add fallback audio providers: try YouTube if YouTube Music fails
     downloader_settings['audio_providers'] = ['youtube-music', 'youtube']
     spotify_settings['client_id'] = os.getenv(
