@@ -75,6 +75,14 @@ def web(web_settings: WebOptions, downloader_settings: DownloaderOptions):
 
     # Download web app from GitHub if not already downloaded or force flag set
     web_app_dir = WEB_GUI_LOCATION
+    
+    # Verify frontend exists
+    frontend_path = Path(web_app_dir)
+    index_file = frontend_path / "index.html"
+    logger.info(f"Frontend directory: {frontend_path} (exists: {frontend_path.exists()})")
+    logger.info(f"Index.html: {index_file} (exists: {index_file.exists()})")
+    if frontend_path.exists():
+        logger.info(f"Frontend files: {list(frontend_path.iterdir())[:10]}")
 
     app_state.api = FastAPI(
         title='Downtify',
@@ -209,13 +217,17 @@ def web(web_settings: WebOptions, downloader_settings: DownloaderOptions):
     )
 
     # SPA routing: Catch 404s for non-API routes and serve index.html
-    @app_state.api.exception_handler(404)
-    async def spa_404_handler(request: Request, exc):
+    @app_state.api.exception_handler(StarletteHTTPException)
+    async def spa_404_handler(request: Request, exc: StarletteHTTPException):
+        # Only handle 404s
+        if exc.status_code != 404:
+            return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
         # If request is for API, return JSON 404
         if request.url.path.startswith('/api/'):
             return JSONResponse(status_code=404, content={"detail": "Not Found"})
         # Otherwise serve index.html for SPA routing
         index_path = Path(web_app_dir) / "index.html"
+        logger.info(f"SPA 404 handler: path={request.url.path}, index_path={index_path}, exists={index_path.exists()}")
         if index_path.exists():
             from fastapi.responses import FileResponse
             return FileResponse(index_path, media_type="text/html")
