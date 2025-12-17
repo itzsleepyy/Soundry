@@ -8,6 +8,19 @@
       
       <!-- Controls -->
       <div class="flex flex-wrap gap-3 items-center justify-end w-full md:w-auto">
+          <!-- Search -->
+          <div class="relative flex-grow md:flex-grow-0">
+            <input 
+              v-model="searchQuery"
+              type="text" 
+              placeholder="Search library..."
+              class="input input-bordered input-sm w-full md:w-64 pl-10 bg-base-100 focus:outline-none"
+            />
+            <Icon icon="clarity:search-line" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-50" />
+          </div>
+          
+          <div class="h-6 w-px bg-base-content/10 hidden sm:block"></div>
+
           <!-- Refresh -->
           <button
              class="btn btn-ghost btn-circle btn-sm"
@@ -183,11 +196,54 @@
         </table>
       </div>
     </div>
+
+    <!-- Pagination -->
+    <div v-if="!loading && totalPages > 1" class="flex justify-center items-center gap-2 mt-6">
+      <button 
+        class="btn btn-sm"
+        :disabled="currentPage === 1"
+        @click="currentPage = 1"
+        title="First page"
+      >
+        <Icon icon="clarity:rewind-line" class="w-4 h-4" />
+      </button>
+      <button 
+        class="btn btn-sm"
+        :disabled="currentPage === 1"
+        @click="currentPage--"
+        title="Previous page"
+      >
+        <Icon icon="clarity:angle-line" class="w-4 h-4 rotate-180" />
+      </button>
+      
+      <div class="flex items-center gap-2">
+        <span class="text-sm opacity-60">Page</span>
+        <span class="badge badge-neutral">{{ currentPage }}</span>
+        <span class="text-sm opacity-60">of {{ totalPages }}</span>
+      </div>
+      
+      <button 
+        class="btn btn-sm"
+        :disabled="currentPage === totalPages"
+        @click="currentPage++"
+        title="Next page"
+      >
+        <Icon icon="clarity:angle-line" class="w-4 h-4" />
+      </button>
+      <button 
+        class="btn btn-sm"
+        :disabled="currentPage === totalPages"
+        @click="currentPage = totalPages"
+        title="Last page"
+      >
+        <Icon icon="clarity:fast-forward-line" class="w-4 h-4" />
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import API from '/src/model/api'
 import { Icon } from '@iconify/vue'
 
@@ -198,6 +254,9 @@ const deleting = ref({})
 
 const viewMode = ref('list') // 'list' | 'grid'
 const sortOption = ref('date-desc') // 'date-desc' | 'date-asc' | 'name-asc'
+const searchQuery = ref('')
+const currentPage = ref(1)
+const itemsPerPage = 50
 
 // Formatters
 const formatBytes = (bytes, decimals = 2) => {
@@ -235,9 +294,16 @@ const getExpiryColor = (timestamp) => {
     return 'badge-success'
 }
 
-const displayFiles = computed(() => {
+const filteredFiles = computed(() => {
     let list = [...files.value]
     
+    // Apply search filter
+    if (searchQuery.value.trim()) {
+        const query = searchQuery.value.toLowerCase()
+        list = list.filter(f => f.name.toLowerCase().includes(query))
+    }
+    
+    // Apply sorting
     if (sortOption.value === 'date-desc') {
         list.sort((a, b) => b.timestamp - a.timestamp)
     } else if (sortOption.value === 'date-asc') {
@@ -245,8 +311,21 @@ const displayFiles = computed(() => {
     } else if (sortOption.value === 'name-asc') {
         list.sort((a, b) => a.name.localeCompare(b.name))
     }
+    
     return list
 })
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredFiles.value.length / itemsPerPage)))
+
+const displayFiles = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage
+    const end = start + itemsPerPage
+    return filteredFiles.value.slice(start, end)
+})
+
+// Reset to page 1 when search or sort changes
+watch(searchQuery, () => { currentPage.value = 1 })
+watch(sortOption, () => { currentPage.value = 1 })
 
 async function refresh() {
   loading.value = true

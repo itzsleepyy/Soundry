@@ -30,8 +30,8 @@
     <nav>
       <header class="footer-title opacity-60">Project</header> 
       <a href="https://github.com/alexlewis/soundry" target="_blank" class="link link-hover">GitHub</a> 
-      <a href="#" class="link link-hover">Documentation</a> 
-      <a href="#" class="link link-hover">Changelog</a>
+      <router-link to="/about" class="link link-hover">About</router-link> 
+      <router-link to="/changelog" class="link link-hover">Changelog</router-link>
     </nav> 
     <nav>
       <header class="footer-title opacity-60">Legal</header> 
