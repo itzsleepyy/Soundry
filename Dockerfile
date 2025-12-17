@@ -1,3 +1,12 @@
+# Build Frontend
+FROM node:20-alpine AS frontend-builder
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ .
+RUN npm run build
+
+# Build Backend Dependencies
 FROM python:3.13-alpine AS builder
 
 WORKDIR /build
@@ -45,7 +54,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 COPY --from=builder /build/ffmpeg /usr/local/bin/ffmpeg
 
 COPY main.py entrypoint.sh ./
-COPY frontend/dist ./frontend/dist
+COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
 RUN sed -i 's/\r$//g' entrypoint.sh && \
     chmod +x entrypoint.sh
